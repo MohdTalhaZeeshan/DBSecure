@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e5929dba-c99f-4b73-b08c-1b311897481e" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="f1fa9ca0-7cbc-4468-a34b-4f666aa58f41" >
+		<db:my-sql-connection host="localhost" port="3306" user="${secure::db.user}" password="${secure::db.password}" database="poc-1" />
+	</db:config>
+	<secure-properties:config name="Secure_Properties_Config1" doc:name="Secure Properties Config" doc:id="95ce2ee5-9ac2-4b0f-a10a-561f9130351f" file="db.properties" key="pass123456789121" />
+	<configuration-properties doc:name="Configuration properties" doc:id="bb766785-0c6a-4b81-b4bc-4410062315a8" file="db.properties" />
+	<flow name="dbsecureFlow" doc:id="990b4e30-1d58-49c9-8f7f-26bde627c10b" >
+		<http:listener doc:name="Listener" doc:id="a29c9554-6cd0-4c04-8b88-ac91397e3c3a" config-ref="HTTP_Listener_config" path="/db"/>
+		<logger level="INFO" doc:name="Logger" doc:id="413e9272-16f7-45cd-a245-c0d4e32cdf50" message='#["Started Flow"]'/>
+		<db:select doc:name="Select" doc:id="c6372efe-3cd4-4759-9b0a-af462e5aca3e" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM PATIENT;]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="b849fd2e-b82c-440a-9c71-7035dc17d525" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
